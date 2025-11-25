@@ -1,11 +1,14 @@
 # app/main.py
 from fastapi import FastAPI
-from app.routers import admins, members
+from app.routers import admins, members, trainers, auth
 
 app = FastAPI(title="Health & Fitness Club Management")
 
 app.include_router(admins.router)
 app.include_router(members.router)
+app.include_router(trainers.router)
+app.include_router(auth.router)
+
 
 @app.get("/")
 def root():
