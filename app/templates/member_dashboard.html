@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Member Dashboard{% endblock %}
+
+{% block content %}
+<h1>Member Dashboard</h1>
+
+<section class="card">
+    <h2>Your Summary</h2>
+    <div id="member-summary">
+        <!-- Filled by JS from /members/{member_id}/dashboard -->
+        <p>Loading dashboard...</p>
+    </div>
+</section>
+
+<section class="card">
+    <h2>Register for a Group Class</h2>
+    <form id="member-class-register-form">
+        <label>
+            Class ID
+            <input type="number" id="member-class-id" required />
+        </label>
+        <button type="submit" class="btn primary">Register</button>
+    </form>
+    <p id="member-class-register-result"></p>
+</section>
+
+<section class="card">
+    <h2>Upcoming PT Sessions</h2>
+    <div id="member-pt-sessions">
+        <!-- Filled by JS, either via dashboard view or dedicated endpoint -->
+    </div>
+</section>
+
+{% endblock %}

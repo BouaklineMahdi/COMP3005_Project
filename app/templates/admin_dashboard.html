@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<h1>Admin Dashboard</h1>
+
+<section class="card">
+    <h2>Create Room</h2>
+    <form id="admin-room-form">
+        <label>
+            Room Name
+            <input type="text" id="admin-room-name" required />
+        </label>
+        <label>
+            Capacity
+            <input type="number" id="admin-room-capacity" required min="1" />
+        </label>
+        <button type="submit" class="btn primary">Create Room</button>
+    </form>
+    <p id="admin-room-result"></p>
+</section>
+
+<section class="card">
+    <h2>Create Class</h2>
+    <form id="admin-class-form">
+        <label>
+            Class Name
+            <input type="text" id="admin-class-name" required />
+        </label>
+        <label>
+            Start time (ISO)
+            <input type="text" id="admin-class-start" required />
+        </label>
+        <label>
+            Capacity
+            <input type="number" id="admin-class-capacity" required />
+        </label>
+        <label>
+            Trainer ID
+            <input type="number" id="admin-class-trainer-id" required />
+        </label>
+        <label>
+            Room ID
+            <input type="number" id="admin-class-room-id" required />
+        </label>
+        <button type="submit" class="btn primary">Create Class</button>
+    </form>
+    <p id="admin-class-result"></p>
+</section>
+
+<section class="card">
+    <h2>Existing Classes</h2>
+    <button id="admin-refresh-classes" class="btn">Refresh List</button>
+    <div id="admin-classes-list">
+        <!-- Filled by JS via e.g. GET /admins/classes or GET /classes -->
+    </div>
+</section>
+
+{% endblock %}

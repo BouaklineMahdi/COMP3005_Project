@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>{% block title %}Fitness Club{% endblock %}</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+<header class="navbar">
+    <div class="nav-left">
+        <a href="/ui/" class="logo">Fitness Club</a>
+    </div>
+    <div class="nav-right">
+        <span id="nav-role"></span>
+        <span id="nav-email"></span>
+        <a id="nav-login" href="/ui/login/admin">Login</a>
+        <a id="nav-logout" href="/ui/logout" style="display:none;">Logout</a>
+    </div>
+</header>
+
+<main class="content">
+    {% block content %}{% endblock %}
+</main>
+
+<script src="/static/main.js"></script>
+</body>
+</html>

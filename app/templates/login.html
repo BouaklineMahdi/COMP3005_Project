@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}{{ role|capitalize }} Login{% endblock %}
+
+{% block content %}
+<h1>{{ role|capitalize }} Login</h1>
+
+<form id="login-form" class="card">
+    <input type="hidden" id="login-role" value="{{ role }}" />
+    <label>
+        Email
+        <input type="email" id="login-email" required />
+    </label>
+
+    <label>
+        Password
+        <input type="password" id="login-password" required />
+    </label>
+
+    <button type="submit" class="btn primary">Log In</button>
+    <p id="login-error" class="error"></p>
+</form>
+
+{% if role == "member" %}
+<div class="hint">
+    <strong>Note:</strong> Members can also register via API (e.g., /members/register).
+</div>
+{% endif %}
+{% endblock %}

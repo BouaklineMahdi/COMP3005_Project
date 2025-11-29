@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Trainer Dashboard{% endblock %}
+
+{% block content %}
+<h1>Trainer Dashboard</h1>
+
+<section class="card">
+    <h2>Your Schedule</h2>
+    <div id="trainer-schedule">
+        <p>Loading schedule...</p>
+    </div>
+</section>
+
+<section class="card">
+    <h2>Set Availability</h2>
+    <form id="trainer-availability-form">
+        <label>
+            Start time (ISO, e.g. 2025-11-30T09:00:00)
+            <input type="text" id="trainer-availability-start" required />
+        </label>
+        <label>
+            End time (ISO, e.g. 2025-11-30T12:00:00)
+            <input type="text" id="trainer-availability-end" required />
+        </label>
+        <button type="submit" class="btn primary">Add Availability</button>
+    </form>
+    <p id="trainer-availability-result"></p>
+</section>
+
+{% endblock %}

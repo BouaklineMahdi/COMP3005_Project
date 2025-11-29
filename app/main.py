@@ -1,6 +1,9 @@
 # app/main.py
 from fastapi import FastAPI
 from app.routers import admins, members, trainers, auth
+from fastapi.staticfiles import StaticFiles
+from app.routers import ui
+from fastapi.responses import RedirectResponse
 
 app = FastAPI(title="Health & Fitness Club Management")
 
@@ -8,11 +11,21 @@ app.include_router(admins.router)
 app.include_router(members.router)
 app.include_router(trainers.router)
 app.include_router(auth.router)
+app.include_router(ui.router)
+
+
+app.mount(
+    "/static",
+    StaticFiles(directory="app/static"),
+    name="static",
+)
+
 
 
 @app.get("/")
-def root():
-    return {"status": "ok", "message": "Health & Fitness Club API"}
+def root_redirect():
+    return RedirectResponse(url="/ui/", status_code=302)
+
 
 
 #uvicorn app.main:app --reload 
