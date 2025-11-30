@@ -37,5 +37,5 @@ def admin_login(data: LoginRequest):
     if not result:
         raise HTTPException(status_code=401, detail="Invalid credentials")
     user_id, email = result
-    # ✅ include email so it satisfies LoginResponse
+    # include email so it satisfies LoginResponse
     return LoginResponse(role="admin", user_id=user_id, email=email)

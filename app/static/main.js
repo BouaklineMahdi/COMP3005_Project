@@ -186,8 +186,6 @@ async function loadMemberDashboard() {
             }
 
             try {
-                // Adjust URL if your endpoint name differs:
-                // e.g. /members/{member_id}/classes/register
                 await apiFetch(`/members/${session.user_id}/classes/register`, {
                     method: "POST",
                     body: JSON.stringify({ class_id: classId }),
@@ -363,8 +361,6 @@ async function loadAdminDashboard() {
         if (!classesList) return;
         classesList.textContent = "Loading classes...";
         try {
-            // Adjust this endpoint if yours differs:
-            // Could be GET /admins/classes or GET /classes
             const classes = await apiFetch("/admins/classes");
             if (!Array.isArray(classes) || classes.length === 0) {
                 classesList.textContent = "No classes.";
@@ -401,7 +397,6 @@ function initLogoutLink() {
     if (!logoutLink) return;
     logoutLink.addEventListener("click", () => {
         clearSession();
-        // Let the server redirect to /ui/, then nav will be updated
     });
 }
 

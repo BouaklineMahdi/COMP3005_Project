@@ -22,7 +22,6 @@ from app.models.schemas import (
     ClassResponse,
 )
 
-# Choose raw SQL or ORM repository implementation
 USE_ORM = os.getenv("USE_ORM", "false").lower() == "true"
 if USE_ORM:
     import app.repositories.admins_orm as admins_repo  # type: ignore

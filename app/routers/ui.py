@@ -79,7 +79,6 @@ def ui_logout():
     """
     Front-end logout: just redirect; JS will clear localStorage.
     """
-    # The JS clears localStorage; here we only send them home.
     return RedirectResponse(url="/ui/", status_code=302)
 
 @router.get("/register/member", response_class=HTMLResponse)
