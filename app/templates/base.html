@@ -1,27 +1,150 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <title>{% block title %}Fitness Club{% endblock %}</title>
-    <link rel="stylesheet" href="/static/styles.css" />
+    <meta charset="UTF-8">
+    <title>Fitness Club</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            margin: 0;
+            background: #0f172a;
+            color: #e5e7eb;
+        }
+        header {
+            background: #020617;
+            border-bottom: 1px solid #1f2937;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header a {
+            color: #e5e7eb;
+            text-decoration: none;
+            margin-left: 1rem;
+            font-size: 0.9rem;
+        }
+        .logo {
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+        main {
+            padding: 2rem;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        h1, h2, h3 {
+            color: #f9fafb;
+        }
+        a.button-link {
+            display: inline-block;
+            padding: 0.6rem 1rem;
+            border-radius: 0.5rem;
+            background: #1d4ed8;
+            color: #f9fafb;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.5rem;
+        }
+        .card {
+            background: #020617;
+            border-radius: 0.75rem;
+            border: 1px solid #1f2937;
+            padding: 1rem 1.25rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+        }
+        .card h2, .card h3 {
+            margin-top: 0;
+        }
+        label {
+            display: block;
+            font-size: 0.85rem;
+            color: #9ca3af;
+            margin-bottom: 0.15rem;
+        }
+        input, select {
+            width: 100%;
+            padding: 0.4rem 0.5rem;
+            border-radius: 0.4rem;
+            border: 1px solid #374151;
+            background: #020617;
+            color: #f9fafb;
+            font-size: 0.9rem;
+            margin-bottom: 0.6rem;
+        }
+        input:focus, select:focus {
+            outline: 1px solid #3b82f6;
+            border-color: #3b82f6;
+        }
+        button {
+            padding: 0.4rem 0.8rem;
+            border-radius: 0.4rem;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        button.primary {
+            background: #2563eb;
+            color: #f9fafb;
+        }
+        button.secondary {
+            background: #111827;
+            color: #e5e7eb;
+            border: 1px solid #374151;
+        }
+        .muted {
+            color: #9ca3af;
+            font-size: 0.85rem;
+        }
+        .tag {
+            display: inline-block;
+            padding: 0.1rem 0.4rem;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            background: #1e293b;
+            color: #e5e7eb;
+        }
+        pre {
+            background: #020617;
+            border-radius: 0.5rem;
+            border: 1px solid #1f2937;
+            padding: 0.75rem;
+            font-size: 0.8rem;
+            max-height: 260px;
+            overflow: auto;
+        }
+        .error {
+            color: #fecaca;
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+        }
+        .success {
+            color: #bbf7d0;
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+        }
+    </style>
 </head>
 <body>
-<header class="navbar">
-    <div class="nav-left">
-        <a href="/ui/" class="logo">Fitness Club</a>
-    </div>
-    <div class="nav-right">
-        <span id="nav-role"></span>
-        <span id="nav-email"></span>
-        <a id="nav-login" href="/ui/login/admin">Login</a>
-        <a id="nav-logout" href="/ui/logout" style="display:none;">Logout</a>
-    </div>
+<header>
+    <div class="logo">Fitness Club</div>
+    <nav>
+        <a href="/ui/">Home</a>
+        <a href="/ui/login/admin">Admin</a>
+        <a href="/ui/login/trainer">Trainer</a>
+        <a href="/ui/login/member">Member</a>
+        <a href="/ui/logout">Logout</a>
+    </nav>
 </header>
-
-<main class="content">
+<main>
     {% block content %}{% endblock %}
 </main>
-
-<script src="/static/main.js"></script>
 </body>
 </html>

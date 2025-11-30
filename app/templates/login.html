@@ -1,28 +1,78 @@
 {% extends "base.html" %}
-{% block title %}{{ role|capitalize }} Login{% endblock %}
-
 {% block content %}
-<h1>{{ role|capitalize }} Login</h1>
+<h1>Login – {{ role|title }}</h1>
+<p class="muted">
+    Use one of the seeded accounts from init_db.<br>
+    Password is usually <code>password123</code>.
+</p>
 
-<form id="login-form" class="card">
-    <input type="hidden" id="login-role" value="{{ role }}" />
-    <label>
-        Email
-        <input type="email" id="login-email" required />
-    </label>
+<div class="card" style="max-width: 420px;">
+    <h2>{{ role|title }} Login</h2>
+    <div id="msg"></div>
+    <form id="loginForm">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" required>
 
-    <label>
-        Password
-        <input type="password" id="login-password" required />
-    </label>
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" required>
 
-    <button type="submit" class="btn primary">Log In</button>
-    <p id="login-error" class="error"></p>
-</form>
-
-{% if role == "member" %}
-<div class="hint">
-    <strong>Note:</strong> Members can also register via API (e.g., /members/register).
+        <button class="primary" type="submit">Login</button>
+    </form>
 </div>
-{% endif %}
+
+<script>
+    (function() {
+        const role = "{{ role }}";  // 'admin', 'trainer', or 'member'
+        const form = document.getElementById("loginForm");
+        const msgDiv = document.getElementById("msg");
+
+        function setMessage(text, cls) {
+            msgDiv.innerHTML = "";
+            if (!text) return;
+            const p = document.createElement("p");
+            p.textContent = text;
+            p.className = cls;
+            msgDiv.appendChild(p);
+        }
+
+        form.addEventListener("submit", async function (e) {
+            e.preventDefault();
+            setMessage("", "");
+
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            try {
+                const endpoint = `/auth/${role}-login`;
+                const res = await fetch(endpoint, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                if (!res.ok) {
+                    const errText = await res.text();
+                    setMessage("Login failed: " + errText, "error");
+                    return;
+                }
+
+                const data = await res.json();
+                // Expect LoginResponse: { role, user_id, email?, ... }
+                localStorage.setItem("fc_role", data.role || role);
+                localStorage.setItem("fc_user_id", data.user_id);
+                localStorage.setItem("fc_email", data.email || email);
+
+                setMessage("Login successful!", "success");
+
+                let redirectPath = "/ui/dashboard/" + role;
+                window.location.href = redirectPath;
+            } catch (err) {
+                console.error(err);
+                setMessage("Unexpected error during login.", "error");
+            }
+        });
+    })();
+</script>
 {% endblock %}

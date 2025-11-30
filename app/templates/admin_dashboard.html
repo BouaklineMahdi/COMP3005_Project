@@ -1,59 +1,177 @@
 {% extends "base.html" %}
-{% block title %}Admin Dashboard{% endblock %}
-
 {% block content %}
 <h1>Admin Dashboard</h1>
+<p class="muted">
+    Logged in as: <span id="adminEmail">(unknown)</span> — Admin ID: <span id="adminId">(unknown)</span>
+</p>
 
-<section class="card">
-    <h2>Create Room</h2>
-    <form id="admin-room-form">
-        <label>
-            Room Name
-            <input type="text" id="admin-room-name" required />
-        </label>
-        <label>
-            Capacity
-            <input type="number" id="admin-room-capacity" required min="1" />
-        </label>
-        <button type="submit" class="btn primary">Create Room</button>
-    </form>
-    <p id="admin-room-result"></p>
-</section>
+<div class="grid" style="margin-top: 1.5rem;">
+    <!-- DB Health -->
+    <div class="card">
+        <span class="tag">System</span>
+        <h2>Database Health</h2>
+        <p class="muted">Check that the DB connection is alive.</p>
 
-<section class="card">
-    <h2>Create Class</h2>
-    <form id="admin-class-form">
-        <label>
-            Class Name
-            <input type="text" id="admin-class-name" required />
-        </label>
-        <label>
-            Start time (ISO)
-            <input type="text" id="admin-class-start" required />
-        </label>
-        <label>
-            Capacity
-            <input type="number" id="admin-class-capacity" required />
-        </label>
-        <label>
-            Trainer ID
-            <input type="number" id="admin-class-trainer-id" required />
-        </label>
-        <label>
-            Room ID
-            <input type="number" id="admin-class-room-id" required />
-        </label>
-        <button type="submit" class="btn primary">Create Class</button>
-    </form>
-    <p id="admin-class-result"></p>
-</section>
+        <button class="secondary" id="btnDbHealth" type="button">Check DB Health</button>
 
-<section class="card">
-    <h2>Existing Classes</h2>
-    <button id="admin-refresh-classes" class="btn">Refresh List</button>
-    <div id="admin-classes-list">
-        <!-- Filled by JS via e.g. GET /admins/classes or GET /classes -->
+        <h3>Result</h3>
+        <pre id="dbHealthResult">No check yet.</pre>
     </div>
-</section>
 
+    <!-- Room management -->
+    <div class="card">
+        <span class="tag">Rooms</span>
+        <h2>Create Room</h2>
+        <p class="muted">Add a new room to the system.</p>
+
+        <form id="roomForm">
+            <label for="roomName">Room Name</label>
+            <input id="roomName" type="text" required>
+
+            <label for="roomCapacity">Capacity</label>
+            <input id="roomCapacity" type="number" min="1" required>
+
+            <button class="primary" type="submit">Create Room</button>
+        </form>
+
+        <pre id="roomCreateResult">No request yet.</pre>
+
+        <h3>Existing Rooms</h3>
+        <button class="secondary" id="btnListRooms" type="button">List Rooms</button>
+        <pre id="roomListResult">No data yet.</pre>
+    </div>
+
+    <!-- Class management -->
+    <div class="card">
+        <span class="tag">Classes</span>
+        <h2>Create Class</h2>
+        <p class="muted">
+            Create a new fitness class (use trainer &amp; room IDs from DB).
+        </p>
+
+        <form id="classForm">
+            <label for="className">Class Name</label>
+            <input id="className" type="text" required>
+
+            <label for="classStart">Start Time (ISO)</label>
+            <input id="classStart" type="datetime-local" required>
+
+            <label for="classCapacity">Capacity</label>
+            <input id="classCapacity" type="number" min="1" required>
+
+            <label for="classTrainerId">Trainer ID</label>
+            <input id="classTrainerId" type="number" min="1" required>
+
+            <label for="classRoomId">Room ID</label>
+            <input id="classRoomId" type="number" min="1" required>
+
+            <button class="primary" type="submit">Create Class</button>
+        </form>
+
+        <pre id="classCreateResult">No request yet.</pre>
+
+        <h3>Existing Classes</h3>
+        <button class="secondary" id="btnListClasses" type="button">List Classes</button>
+        <pre id="classListResult">No data yet.</pre>
+    </div>
+</div>
+
+<script>
+(function() {
+    const emailSpan = document.getElementById("adminEmail");
+    const idSpan = document.getElementById("adminId");
+    const storedEmail = localStorage.getItem("fc_email");
+    const storedRole = localStorage.getItem("fc_role");
+    const storedId = localStorage.getItem("fc_user_id");
+
+    if (storedEmail) emailSpan.textContent = storedEmail;
+    if (storedId) idSpan.textContent = storedId;
+    if (storedRole !== "admin") {
+        console.warn("Logged-in role is not 'admin' according to localStorage.");
+    }
+
+    // 1) DB health
+    document.getElementById("btnDbHealth").addEventListener("click", async function() {
+        try {
+            const res = await fetch("/admins/db-health");
+            const text = await res.text();
+            document.getElementById("dbHealthResult").textContent = text;
+        } catch (err) {
+            document.getElementById("dbHealthResult").textContent = "Error: " + err;
+        }
+    });
+
+    // 2) Create room
+    document.getElementById("roomForm").addEventListener("submit", async function(e) {
+        e.preventDefault();
+        const name = document.getElementById("roomName").value;
+        const capacity = parseInt(document.getElementById("roomCapacity").value, 10);
+
+        try {
+            const res = await fetch("/admins/rooms", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: name,
+                    capacity: capacity
+                })
+            });
+            const text = await res.text();
+            document.getElementById("roomCreateResult").textContent = text;
+        } catch (err) {
+            document.getElementById("roomCreateResult").textContent = "Error: " + err;
+        }
+    });
+
+    // 3) List rooms
+    document.getElementById("btnListRooms").addEventListener("click", async function() {
+        try {
+            const res = await fetch("/admins/rooms");
+            const text = await res.text();
+            document.getElementById("roomListResult").textContent = text;
+        } catch (err) {
+            document.getElementById("roomListResult").textContent = "Error: " + err;
+        }
+    });
+
+    // 4) Create class
+    document.getElementById("classForm").addEventListener("submit", async function(e) {
+        e.preventDefault();
+        const name = document.getElementById("className").value;
+        const start = document.getElementById("classStart").value;
+        const capacity = parseInt(document.getElementById("classCapacity").value, 10);
+        const trainerId = parseInt(document.getElementById("classTrainerId").value, 10);
+        const roomId = parseInt(document.getElementById("classRoomId").value, 10);
+
+        try {
+            const res = await fetch("/admins/classes", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: name,
+                    start_time: start,
+                    capacity: capacity,
+                    trainer_id: trainerId,
+                    room_id: roomId
+                })
+            });
+            const text = await res.text();
+            document.getElementById("classCreateResult").textContent = text;
+        } catch (err) {
+            document.getElementById("classCreateResult").textContent = "Error: " + err;
+        }
+    });
+
+    // 5) List classes
+    document.getElementById("btnListClasses").addEventListener("click", async function() {
+        try {
+            const res = await fetch("/admins/classes");
+            const text = await res.text();
+            document.getElementById("classListResult").textContent = text;
+        } catch (err) {
+            document.getElementById("classListResult").textContent = "Error: " + err;
+        }
+    });
+})();
+</script>
 {% endblock %}

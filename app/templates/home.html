@@ -1,27 +1,34 @@
 {% extends "base.html" %}
-{% block title %}Fitness Club – Home{% endblock %}
-
 {% block content %}
-<h1>Welcome to the Fitness Club Management System</h1>
-<p>Select your role to log in:</p>
+<h1>Health &amp; Fitness Club Management</h1>
+<p class="muted">Choose your role to log in and manage the system.</p>
 
-<div class="role-grid">
-    <div class="role-card">
-        <h2>Admin</h2>
-        <p>Manage rooms, classes, and overall scheduling.</p>
-        <a class="btn primary" href="/ui/login/admin">Admin Login</a>
+<div class="grid" style="margin-top: 1.5rem;">
+    <div class="card">
+        <span class="tag">Admin</span>
+        <h2>Admin Portal</h2>
+        <p class="muted">
+            Manage rooms, classes, and overall system health.
+        </p>
+        <a class="button-link" href="/ui/login/admin">Go to Admin Login</a>
     </div>
 
-    <div class="role-card">
-        <h2>Trainer</h2>
-        <p>View your schedule and set your availability.</p>
-        <a class="btn" href="/ui/login/trainer">Trainer Login</a>
+    <div class="card">
+        <span class="tag">Trainer</span>
+        <h2>Trainer Portal</h2>
+        <p class="muted">
+            View your schedule and set your availability for PT sessions and classes.
+        </p>
+        <a class="button-link" href="/ui/login/trainer">Go to Trainer Login</a>
     </div>
 
-    <div class="role-card">
-        <h2>Member</h2>
-        <p>View your dashboard and register for group classes.</p>
-        <a class="btn" href="/ui/login/member">Member Login</a>
+    <div class="card">
+        <span class="tag">Member</span>
+        <h2>Member Portal</h2>
+        <p class="muted">
+            View your dashboard, register for classes, and track health metrics.
+        </p>
+        <a class="button-link" href="/ui/login/member">Go to Member Login</a>
     </div>
 </div>
 {% endblock %}

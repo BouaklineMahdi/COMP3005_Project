@@ -1,34 +1,214 @@
 {% extends "base.html" %}
-{% block title %}Member Dashboard{% endblock %}
-
 {% block content %}
 <h1>Member Dashboard</h1>
+<p class="muted">
+    Logged in as: <span id="memberEmail">(unknown)</span> — Member ID: <span id="memberId">(unknown)</span>
+</p>
 
-<section class="card">
-    <h2>Your Summary</h2>
-    <div id="member-summary">
-        <!-- Filled by JS from /members/{member_id}/dashboard -->
-        <p>Loading dashboard...</p>
+<div class="grid" style="margin-top: 1.5rem;">
+    <!-- Member summary (VIEW) -->
+    <div class="card">
+        <span class="tag">Summary</span>
+        <h2>Dashboard Summary</h2>
+        <p class="muted">Fetch your latest metrics, class count, and upcoming PT sessions.</p>
+
+        <label for="memberIdInput">Member ID (auto-filled if logged in)</label>
+        <input id="memberIdInput" type="number" min="1">
+
+        <button class="secondary" id="btnFetchDashboard" type="button">Fetch Dashboard</button>
+
+        <h3>Result</h3>
+        <pre id="dashboardResult">No data yet.</pre>
     </div>
-</section>
 
-<section class="card">
-    <h2>Register for a Group Class</h2>
-    <form id="member-class-register-form">
-        <label>
-            Class ID
-            <input type="number" id="member-class-id" required />
-        </label>
-        <button type="submit" class="btn primary">Register</button>
-    </form>
-    <p id="member-class-register-result"></p>
-</section>
+    <!-- Health metrics -->
+    <div class="card">
+        <span class="tag">Metrics</span>
+        <h2>Add Health Metric</h2>
+        <p class="muted">
+            Append a new health metric to your history.
+        </p>
 
-<section class="card">
-    <h2>Upcoming PT Sessions</h2>
-    <div id="member-pt-sessions">
-        <!-- Filled by JS, either via dashboard view or dedicated endpoint -->
+        <form id="metricForm">
+            <label for="metricMemberId">Member ID</label>
+            <input id="metricMemberId" type="number" min="1" required>
+
+            <label for="metricType">Metric Type</label>
+            <input id="metricType" type="text" placeholder="weight, heart_rate, etc." required>
+
+            <label for="metricValue">Metric Value</label>
+            <input id="metricValue" type="number" step="0.01" required>
+
+            <button class="primary" type="submit">Add Metric</button>
+        </form>
+
+        <pre id="metricResult">No request yet.</pre>
     </div>
-</section>
 
+    <!-- PT session scheduling -->
+    <div class="card">
+        <span class="tag">PT Session</span>
+        <h2>Schedule PT Session</h2>
+        <p class="muted">
+            Create a new PT session with a trainer in a room.
+        </p>
+
+        <form id="ptForm">
+            <label for="ptMemberId">Member ID</label>
+            <input id="ptMemberId" type="number" min="1" required>
+
+            <label for="ptTrainerId">Trainer ID</label>
+            <input id="ptTrainerId" type="number" min="1" required>
+
+            <label for="ptRoomId">Room ID</label>
+            <input id="ptRoomId" type="number" min="1" required>
+
+            <label for="ptStart">Start Time (ISO)</label>
+            <input id="ptStart" type="datetime-local" required>
+
+            <label for="ptEnd">End Time (ISO)</label>
+            <input id="ptEnd" type="datetime-local" required>
+
+            <button class="primary" type="submit">Schedule PT Session</button>
+        </form>
+
+        <pre id="ptResult">No request yet.</pre>
+    </div>
+
+    <!-- Class registration -->
+    <div class="card">
+        <span class="tag">Classes</span>
+        <h2>Register for Class</h2>
+        <p class="muted">
+            Join an existing class by ID (capacity rules enforced by trigger).
+        </p>
+
+        <form id="classRegForm">
+            <label for="classRegMemberId">Member ID</label>
+            <input id="classRegMemberId" type="number" min="1" required>
+
+            <label for="classRegClassId">Class ID</label>
+            <input id="classRegClassId" type="number" min="1" required>
+
+            <button class="primary" type="submit">Register</button>
+        </form>
+
+        <pre id="classRegResult">No request yet.</pre>
+    </div>
+</div>
+
+<script>
+(function() {
+    const emailSpan = document.getElementById("memberEmail");
+    const idSpan = document.getElementById("memberId");
+    const memberIdInput = document.getElementById("memberIdInput");
+    const metricMemberId = document.getElementById("metricMemberId");
+    const ptMemberId = document.getElementById("ptMemberId");
+    const classRegMemberId = document.getElementById("classRegMemberId");
+
+    const storedEmail = localStorage.getItem("fc_email");
+    const storedRole = localStorage.getItem("fc_role");
+    const storedId = localStorage.getItem("fc_user_id");
+
+    if (storedEmail) emailSpan.textContent = storedEmail;
+    if (storedId) {
+        idSpan.textContent = storedId;
+        memberIdInput.value = storedId;
+        metricMemberId.value = storedId;
+        ptMemberId.value = storedId;
+        classRegMemberId.value = storedId;
+    }
+    if (storedRole !== "member") {
+        // Soft warning only
+        console.warn("Logged-in role is not 'member' according to localStorage.");
+    }
+
+    // 1) Fetch dashboard
+    document.getElementById("btnFetchDashboard").addEventListener("click", async function() {
+        const mid = document.getElementById("memberIdInput").value;
+        if (!mid) {
+            alert("Please provide a Member ID.");
+            return;
+        }
+        try {
+            const res = await fetch(`/members/${mid}/dashboard`);
+            const text = await res.text();
+            document.getElementById("dashboardResult").textContent = text;
+        } catch (err) {
+            document.getElementById("dashboardResult").textContent = "Error: " + err;
+        }
+    });
+
+    // 2) Add metric
+    document.getElementById("metricForm").addEventListener("submit", async function(e) {
+        e.preventDefault();
+        const mid = metricMemberId.value;
+        const metricType = document.getElementById("metricType").value;
+        const metricValue = parseFloat(document.getElementById("metricValue").value);
+
+        try {
+            const res = await fetch(`/members/${mid}/metrics`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    metric_type: metricType,
+                    metric_value: metricValue
+                })
+            });
+            const text = await res.text();
+            document.getElementById("metricResult").textContent = text;
+        } catch (err) {
+            document.getElementById("metricResult").textContent = "Error: " + err;
+        }
+    });
+
+    // 3) Schedule PT session
+    document.getElementById("ptForm").addEventListener("submit", async function(e) {
+        e.preventDefault();
+        const mid = ptMemberId.value;
+        const trainerId = parseInt(document.getElementById("ptTrainerId").value, 10);
+        const roomId = parseInt(document.getElementById("ptRoomId").value, 10);
+        const start = document.getElementById("ptStart").value;
+        const end = document.getElementById("ptEnd").value;
+
+        try {
+            const res = await fetch(`/members/${mid}/pt-sessions`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    trainer_id: trainerId,
+                    room_id: roomId,
+                    start_time: start,
+                    end_time: end
+                })
+            });
+            const text = await res.text();
+            document.getElementById("ptResult").textContent = text;
+        } catch (err) {
+            document.getElementById("ptResult").textContent = "Error: " + err;
+        }
+    });
+
+    // 4) Register for class
+    document.getElementById("classRegForm").addEventListener("submit", async function(e) {
+        e.preventDefault();
+        const mid = classRegMemberId.value;
+        const cid = document.getElementById("classRegClassId").value;
+
+        try {
+            const res = await fetch(`/members/${mid}/classes/${cid}/register`, {
+                method: "POST"
+            });
+            const text = await res.text();
+            document.getElementById("classRegResult").textContent = text;
+        } catch (err) {
+            document.getElementById("classRegResult").textContent = "Error: " + err;
+        }
+    });
+})();
+</script>
 {% endblock %}

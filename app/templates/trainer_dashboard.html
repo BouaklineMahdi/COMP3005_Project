@@ -1,30 +1,135 @@
 {% extends "base.html" %}
-{% block title %}Trainer Dashboard{% endblock %}
-
 {% block content %}
 <h1>Trainer Dashboard</h1>
+<p class="muted">
+    Logged in as: <span id="trainerEmail">(unknown)</span> — Trainer ID: <span id="trainerId">(unknown)</span>
+</p>
 
-<section class="card">
-    <h2>Your Schedule</h2>
-    <div id="trainer-schedule">
-        <p>Loading schedule...</p>
+<div class="grid" style="margin-top: 1.5rem;">
+    <div class="card">
+        <span class="tag">Schedule</span>
+        <h2>View Schedule</h2>
+        <p class="muted">View all your upcoming PT sessions and classes.</p>
+
+        <label for="schedTrainerId">Trainer ID (auto-filled if logged in)</label>
+        <input id="schedTrainerId" type="number" min="1">
+
+        <button class="secondary" id="btnViewSchedule" type="button">Fetch Schedule</button>
+
+        <h3>Result</h3>
+        <pre id="scheduleResult">No data yet.</pre>
     </div>
-</section>
 
-<section class="card">
-    <h2>Set Availability</h2>
-    <form id="trainer-availability-form">
-        <label>
-            Start time (ISO, e.g. 2025-11-30T09:00:00)
-            <input type="text" id="trainer-availability-start" required />
-        </label>
-        <label>
-            End time (ISO, e.g. 2025-11-30T12:00:00)
-            <input type="text" id="trainer-availability-end" required />
-        </label>
-        <button type="submit" class="btn primary">Add Availability</button>
-    </form>
-    <p id="trainer-availability-result"></p>
-</section>
+    <div class="card">
+        <span class="tag">Availability</span>
+        <h2>Create Availability Slot</h2>
+        <p class="muted">
+            Define time ranges when you’re available for PT sessions.
+        </p>
 
+        <form id="availabilityForm">
+            <label for="availTrainerId">Trainer ID</label>
+            <input id="availTrainerId" type="number" min="1" required>
+
+            <label for="availStart">Start Time (ISO)</label>
+            <input id="availStart" type="datetime-local" required>
+
+            <label for="availEnd">End Time (ISO)</label>
+            <input id="availEnd" type="datetime-local" required>
+
+            <button class="primary" type="submit">Create Availability</button>
+        </form>
+
+        <pre id="availabilityCreateResult">No request yet.</pre>
+    </div>
+
+    <div class="card">
+        <span class="tag">Availability</span>
+        <h2>List Availability</h2>
+        <p class="muted">See all your current availability slots.</p>
+
+        <label for="listAvailTrainerId">Trainer ID</label>
+        <input id="listAvailTrainerId" type="number" min="1">
+
+        <button class="secondary" id="btnListAvailability" type="button">List Availability</button>
+
+        <pre id="availabilityListResult">No data yet.</pre>
+    </div>
+</div>
+
+<script>
+(function() {
+    const emailSpan = document.getElementById("trainerEmail");
+    const idSpan = document.getElementById("trainerId");
+    const storedEmail = localStorage.getItem("fc_email");
+    const storedRole = localStorage.getItem("fc_role");
+    const storedId = localStorage.getItem("fc_user_id");
+
+    if (storedEmail) emailSpan.textContent = storedEmail;
+    if (storedId) {
+        idSpan.textContent = storedId;
+        document.getElementById("schedTrainerId").value = storedId;
+        document.getElementById("availTrainerId").value = storedId;
+        document.getElementById("listAvailTrainerId").value = storedId;
+    }
+    if (storedRole !== "trainer") {
+        console.warn("Logged-in role is not 'trainer' according to localStorage.");
+    }
+
+    // 1) View schedule
+    document.getElementById("btnViewSchedule").addEventListener("click", async function() {
+        const tid = document.getElementById("schedTrainerId").value;
+        if (!tid) {
+            alert("Please provide a Trainer ID.");
+            return;
+        }
+        try {
+            const res = await fetch(`/trainers/${tid}/schedule`);
+            const text = await res.text();
+            document.getElementById("scheduleResult").textContent = text;
+        } catch (err) {
+            document.getElementById("scheduleResult").textContent = "Error: " + err;
+        }
+    });
+
+    // 2) Create availability
+    document.getElementById("availabilityForm").addEventListener("submit", async function(e) {
+        e.preventDefault();
+        const tid = document.getElementById("availTrainerId").value;
+        const start = document.getElementById("availStart").value;
+        const end = document.getElementById("availEnd").value;
+
+        try {
+            const res = await fetch(`/trainers/${tid}/availability`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    start_time: start,
+                    end_time: end
+                })
+            });
+            const text = await res.text();
+            document.getElementById("availabilityCreateResult").textContent = text;
+        } catch (err) {
+            document.getElementById("availabilityCreateResult").textContent = "Error: " + err;
+        }
+    });
+
+    // 3) List availability
+    document.getElementById("btnListAvailability").addEventListener("click", async function() {
+        const tid = document.getElementById("listAvailTrainerId").value;
+        if (!tid) {
+            alert("Please provide a Trainer ID.");
+            return;
+        }
+        try {
+            const res = await fetch(`/trainers/${tid}/availability`);
+            const text = await res.text();
+            document.getElementById("availabilityListResult").textContent = text;
+        } catch (err) {
+            document.getElementById("availabilityListResult").textContent = "Error: " + err;
+        }
+    });
+})();
+</script>
 {% endblock %}
