@@ -2,21 +2,24 @@
 """
 Low-level PostgreSQL access using psycopg2.
 
-This module is used by the "raw SQL" repositories, e.g.:
+Used by the "raw SQL" repositories, e.g.:
 - app.repositories.admins_raw
 - app.repositories.members_raw
 - app.repositories.trainers_raw
 
-It exposes:
+Exposes:
 
-    get_connection() -> psycopg2 connection
+    get_connection()  -> plain psycopg2 connection
+    get_cursor(...)   -> context manager yielding a dict-like cursor
+    get_connection_ctx() -> optional (conn, cur) context manager
 
-which uses the DB settings from app.config.
+All DB settings come from app.config.
 """
 
 from contextlib import contextmanager
 
 import psycopg2
+from psycopg2.extras import RealDictCursor
 
 from app import config
 
@@ -25,7 +28,7 @@ def get_connection():
     """
     Open and return a new psycopg2 connection using app.config settings.
 
-    Example usage:
+    Example:
 
         from app.db_raw import get_connection
 
@@ -34,8 +37,8 @@ def get_connection():
                 cur.execute("SELECT 1;")
                 print(cur.fetchone())
 
-    The context manager protocol on the connection will automatically
-    close the connection at the end of the 'with' block.
+    The connection's context manager will commit on success and roll back
+    on exception.
     """
     conn = psycopg2.connect(
         host=config.DB_HOST,
@@ -48,9 +51,38 @@ def get_connection():
 
 
 @contextmanager
+def get_cursor(commit: bool = False):
+    """
+    Convenience context manager used by members_raw, admins_raw, etc.
+
+    Yields a cursor that returns rows as dictionaries, so code like:
+
+        row = cur.fetchone()
+        row["member_id"]
+
+    works as expected.
+
+    If commit=True, the connection is committed when the block exits
+    without error; otherwise, changes are not committed automatically.
+    """
+    conn = get_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        yield cur
+        if commit:
+            conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        cur.close()
+        conn.close()
+
+
+@contextmanager
 def get_connection_ctx():
     """
-    Optional helper context manager if you prefer:
+    Optional helper:
 
         from app.db_raw import get_connection_ctx
 
@@ -58,10 +90,11 @@ def get_connection_ctx():
             cur.execute("SELECT 1")
             print(cur.fetchone())
 
-    Not required by anything currently, but safe to keep.
+    Uses a RealDictCursor so row["col"] works.
+    Always commits on success and rolls back on error.
     """
     conn = get_connection()
-    cur = conn.cursor()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
     try:
         yield conn, cur
         conn.commit()
