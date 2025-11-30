@@ -1,6 +1,7 @@
 # app/repositories/members_raw.py
 from passlib.hash import bcrypt
 from app.db_raw import get_cursor
+from app.db_raw import get_connection
 from app.models.schemas import (
     MemberRegisterRequest,
     HealthMetricCreate,
@@ -8,6 +9,21 @@ from app.models.schemas import (
     PTSessionCreate,
 )
 
+def register_for_class(member_id: int, class_id: int) -> None:
+    """
+    Register a member in a class using plain SQL.
+    Sets registered_at to NOW() to satisfy NOT NULL constraint.
+    """
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO class_registration (member_id, class_id, registered_at)
+                VALUES (%s, %s, NOW())
+                """,
+                (member_id, class_id),
+            )
+        conn.commit()
 
 def register_member(data: MemberRegisterRequest) -> int:
     """

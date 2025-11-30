@@ -1,5 +1,6 @@
 # app/models/orm_models.py
 from datetime import datetime, date
+from sqlalchemy import DateTime
 from sqlalchemy import (
     Column,
     Integer,
@@ -117,10 +118,14 @@ class HealthMetric(Base):
     member_id = Column(Integer, ForeignKey("member.member_id"), nullable=False)
     metric_type = Column(Text, nullable=False)
     metric_value = Column(Numeric(10, 2), nullable=False)
-    measured_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)
+    measured_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=datetime.utcnow,  # Python-side default
+    )
 
     member = relationship("Member", back_populates="health_metrics")
-
+ 
 
 class FitnessGoal(Base):
     __tablename__ = "fitness_goal"
@@ -140,7 +145,11 @@ class ClassRegistration(Base):
 
     member_id = Column(Integer, ForeignKey("member.member_id"), primary_key=True)
     class_id = Column(Integer, ForeignKey("class.class_id"), primary_key=True)
-    registered_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)
+    registered_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=datetime.utcnow,  # Python-side default
+    )
 
     member = relationship("Member", back_populates="class_registrations")
     fitness_class = relationship("FitnessClass", back_populates="registrations")

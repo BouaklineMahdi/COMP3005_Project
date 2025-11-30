@@ -81,3 +81,13 @@ def ui_logout():
     """
     # The JS clears localStorage; here we only send them home.
     return RedirectResponse(url="/ui/", status_code=302)
+
+@router.get("/register/member", response_class=HTMLResponse)
+def member_register_page(request: Request):
+    """
+    Show the member registration page.
+    """
+    return templates.TemplateResponse(
+        "register_member.html",
+        {"request": request}
+    )

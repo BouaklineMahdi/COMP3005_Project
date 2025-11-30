@@ -1,10 +1,12 @@
 # app/repositories/members_orm.py
+from datetime import datetime
+
 from sqlalchemy import text, or_
 from sqlalchemy.orm import Session
 from passlib.hash import bcrypt
 
 from app.db_orm import SessionLocal
-from app.models.orm_models import Member, HealthMetric, PTSession
+from app.models.orm_models import Member, HealthMetric, PTSession, ClassRegistration
 from app.models.schemas import (
     MemberRegisterRequest,
     HealthMetricCreate,
@@ -12,6 +14,19 @@ from app.models.schemas import (
     PTSessionCreate,
 )
 
+def register_for_class(member_id: int, class_id: int) -> None:
+    """
+    Register a member for a class using ORM.
+    Ensures registered_at is non-null.
+    """
+    with SessionLocal() as session:
+        reg = ClassRegistration(
+            member_id=member_id,
+            class_id=class_id,
+            registered_at=datetime.utcnow(),  # 👈 important
+        )
+        session.add(reg)
+        session.commit()
 
 def register_member(data: MemberRegisterRequest) -> int:
     password_hash = bcrypt.hash(data.password)
@@ -36,6 +51,7 @@ def add_health_metric(member_id: int, metric: HealthMetricCreate) -> int:
             member_id=member_id,
             metric_type=metric.metric_type,
             metric_value=metric.metric_value,
+            measured_at=datetime.utcnow(),  # 👈 force non-null timestamp
         )
         session.add(hm)
         session.commit()
