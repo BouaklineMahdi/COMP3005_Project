@@ -9,13 +9,14 @@ from app.models.schemas import (
     MemberDashboard,
     PTSessionCreate,
 )
-import app.repositories.admins_raw as admins_repo  # class registration
 
 USE_ORM = os.getenv("USE_ORM", "false").lower() == "true"
 if USE_ORM:
     import app.repositories.members_orm as members_repo
+    import app.repositories.admins_orm as admins_repo
 else:
     import app.repositories.members_raw as members_repo
+    import app.repositories.admins_raw as admins_repo
 
 print("USE_ORM (members router) =", USE_ORM)
 router = APIRouter(prefix="/members", tags=["members"])
