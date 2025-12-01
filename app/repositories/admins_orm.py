@@ -1,6 +1,7 @@
 # app/repositories/admins_orm.py
 from passlib.hash import bcrypt
 from app.db_orm import SessionLocal
+from sqlalchemy import text
 from app.models.orm_models import Admin, Room, FitnessClass, ClassRegistration
 from app.models.schemas import (
     RoomCreate,
@@ -10,6 +11,11 @@ from app.models.schemas import (
     AdminRegisterRequest,
 )
 
+def get_db_health() -> dict:
+    """Simple DB health check."""
+    with SessionLocal() as session:
+        session.execute(text("SELECT 1"))
+    return {"status": "ok"}
 
 def register_admin(data: AdminRegisterRequest) -> int:
     password_hash = bcrypt.hash(data.password)
