@@ -1,7 +1,7 @@
 # Health & Fitness Club Management System
 
 **COMP 3005 - Fall 2025**  
-**Team Members:** Mahdi Bouakline 101257788, Aranan
+**Team Members:** Mahdi Bouakline 101257788, Aranan Thayaparan 101256040
 
 ---
 
