@@ -1,18 +1,16 @@
 # app/models/orm_models.py
 from datetime import datetime, date
-from sqlalchemy import DateTime
+
 from sqlalchemy import (
     Column,
     Integer,
-    String,
     Text,
     Date,
     DateTime,
     Numeric,
     ForeignKey,
-    UniqueConstraint,
 )
-from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy.orm import declarative_base, relationship, Mapped, mapped_column
 
 Base = declarative_base()
 
@@ -27,7 +25,13 @@ class Member(Base):
     email = Column(Text, nullable=False, unique=True)
     phone = Column(Text)
     password_hash = Column(Text, nullable=False)
-    created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)
+
+    # IMPORTANT: use mapped_column with a default so ORM always fills it
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=datetime.utcnow,  # function, no parentheses
+        nullable=False,
+    )
 
     health_metrics = relationship(
         "HealthMetric", back_populates="member", cascade="all, delete-orphan"
@@ -92,7 +96,9 @@ class FitnessClass(Base):
     trainer = relationship("Trainer", back_populates="classes")
     room = relationship("Room", back_populates="classes")
     registrations = relationship(
-        "ClassRegistration", back_populates="fitness_class", cascade="all, delete-orphan"
+        "ClassRegistration",
+        back_populates="fitness_class",
+        cascade="all, delete-orphan",
     )
 
 
@@ -118,14 +124,15 @@ class HealthMetric(Base):
     member_id = Column(Integer, ForeignKey("member.member_id"), nullable=False)
     metric_type = Column(Text, nullable=False)
     metric_value = Column(Numeric(10, 2), nullable=False)
-    measured_at = Column(
+
+    measured_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
+        default=datetime.utcnow,  # function, no parentheses
         nullable=False,
-        default=datetime.utcnow,  # Python-side default
     )
 
     member = relationship("Member", back_populates="health_metrics")
- 
+
 
 class FitnessGoal(Base):
     __tablename__ = "fitness_goal"
@@ -135,7 +142,12 @@ class FitnessGoal(Base):
     goal_type = Column(Text, nullable=False)
     target_value = Column(Numeric(10, 2))
     status = Column(Text, nullable=False, default="active")
-    created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=datetime.utcnow,
+        nullable=False,
+    )
 
     member = relationship("Member", back_populates="fitness_goals")
 
@@ -145,10 +157,11 @@ class ClassRegistration(Base):
 
     member_id = Column(Integer, ForeignKey("member.member_id"), primary_key=True)
     class_id = Column(Integer, ForeignKey("class.class_id"), primary_key=True)
-    registered_at = Column(
+
+    registered_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
+        default=datetime.utcnow,
         nullable=False,
-        default=datetime.utcnow,  # Python-side default
     )
 
     member = relationship("Member", back_populates="class_registrations")

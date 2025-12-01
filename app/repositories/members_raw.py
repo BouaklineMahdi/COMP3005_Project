@@ -1,13 +1,14 @@
 # app/repositories/members_raw.py
 from passlib.hash import bcrypt
-from app.db_raw import get_cursor
-from app.db_raw import get_connection
+
+from app.db_raw import get_cursor, get_connection
 from app.models.schemas import (
     MemberRegisterRequest,
     HealthMetricCreate,
     MemberDashboard,
     PTSessionCreate,
 )
+
 
 def register_for_class(member_id: int, class_id: int) -> None:
     """
@@ -25,40 +26,61 @@ def register_for_class(member_id: int, class_id: int) -> None:
             )
         conn.commit()
 
+
 def register_member(data: MemberRegisterRequest) -> int:
     """
     Insert a new member and return the generated member_id.
+
+    IMPORTANT: we explicitly set created_at = NOW()
+    so the NOT NULL constraint on member.created_at is satisfied
+    even when using raw SQL.
     """
     password_hash = bcrypt.hash(data.password)
 
     with get_cursor(commit=True) as cur:
         cur.execute(
             """
-            INSERT INTO member (name, dob, gender, email, phone, password_hash)
-            VALUES (%s, %s, %s, %s, %s, %s)
+            INSERT INTO member (
+                name,
+                dob,
+                gender,
+                email,
+                phone,
+                password_hash,
+                created_at
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, NOW())
             RETURNING member_id;
             """,
             (data.name, data.dob, data.gender, data.email, data.phone, password_hash),
         )
         row = cur.fetchone()
-        return row["member_id"]
+        # row might be a dict (RealDictCursor) or a tuple; handle both
+        return row["member_id"] if isinstance(row, dict) else row[0]
 
 
 def add_health_metric(member_id: int, metric: HealthMetricCreate) -> int:
     """
     Insert a new health metric for this member and return metric_id.
+
+    We set measured_at = NOW() explicitly to avoid NULLs.
     """
     with get_cursor(commit=True) as cur:
         cur.execute(
             """
-            INSERT INTO health_metric (member_id, metric_type, metric_value)
-            VALUES (%s, %s, %s)
+            INSERT INTO health_metric (
+                member_id,
+                metric_type,
+                metric_value,
+                measured_at
+            )
+            VALUES (%s, %s, %s, NOW())
             RETURNING metric_id;
             """,
             (member_id, metric.metric_type, metric.metric_value),
         )
         row = cur.fetchone()
-        return row["metric_id"]
+        return row["metric_id"] if isinstance(row, dict) else row[0]
 
 
 def get_member_dashboard(member_id: int) -> MemberDashboard | None:
@@ -78,6 +100,7 @@ def get_member_dashboard(member_id: int) -> MemberDashboard | None:
         row = cur.fetchone()
         if not row:
             return None
+        # row could be dict or tuple; in our setup it's a dict
         return MemberDashboard(**row)
 
 
@@ -93,7 +116,7 @@ def _has_time_conflict_for_trainer(trainer_id: int, start_time, end_time) -> boo
             (trainer_id, start_time, end_time),
         )
         row = cur.fetchone()
-        return row["cnt"] > 0
+        return (row["cnt"] if isinstance(row, dict) else row[0]) > 0
 
 
 def _has_time_conflict_for_room(room_id: int, start_time, end_time) -> bool:
@@ -108,7 +131,7 @@ def _has_time_conflict_for_room(room_id: int, start_time, end_time) -> bool:
             (room_id, start_time, end_time),
         )
         row = cur.fetchone()
-        return row["cnt"] > 0
+        return (row["cnt"] if isinstance(row, dict) else row[0]) > 0
 
 
 def _has_time_conflict_for_member(member_id: int, start_time, end_time) -> bool:
@@ -123,7 +146,7 @@ def _has_time_conflict_for_member(member_id: int, start_time, end_time) -> bool:
             (member_id, start_time, end_time),
         )
         row = cur.fetchone()
-        return row["cnt"] > 0
+        return (row["cnt"] if isinstance(row, dict) else row[0]) > 0
 
 
 def schedule_pt_session(member_id: int, data: PTSessionCreate) -> int:
@@ -135,24 +158,42 @@ def schedule_pt_session(member_id: int, data: PTSessionCreate) -> int:
         raise ValueError("end_time must be after start_time")
 
     # Check conflicts
-    if _has_time_conflict_for_trainer(data.trainer_id, data.start_time, data.end_time):
+    if _has_time_conflict_for_trainer(
+        data.trainer_id, data.start_time, data.end_time
+    ):
         raise ValueError("Trainer is not available in this time slot")
 
-    if _has_time_conflict_for_room(data.room_id, data.start_time, data.end_time):
+    if _has_time_conflict_for_room(
+        data.room_id, data.start_time, data.end_time
+    ):
         raise ValueError("Room is not available in this time slot")
 
-    if _has_time_conflict_for_member(member_id, data.start_time, data.end_time):
+    if _has_time_conflict_for_member(
+        member_id, data.start_time, data.end_time
+    ):
         raise ValueError("Member already has a session in this time slot")
 
     # If all clear, insert
     with get_cursor(commit=True) as cur:
         cur.execute(
             """
-            INSERT INTO ptsession (member_id, trainer_id, room_id, start_time, end_time)
+            INSERT INTO ptsession (
+                member_id,
+                trainer_id,
+                room_id,
+                start_time,
+                end_time
+            )
             VALUES (%s, %s, %s, %s, %s)
             RETURNING session_id;
             """,
-            (member_id, data.trainer_id, data.room_id, data.start_time, data.end_time),
+            (
+                member_id,
+                data.trainer_id,
+                data.room_id,
+                data.start_time,
+                data.end_time,
+            ),
         )
         row = cur.fetchone()
-        return row["session_id"]
+        return row["session_id"] if isinstance(row, dict) else row[0]
