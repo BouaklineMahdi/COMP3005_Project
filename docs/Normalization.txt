@@ -1,16 +1,67 @@
-NORMALIZATION NOTES:
+# Normalization 
 
-All tables are in Third Normal Form (3NF):
+---
 
-1NF: All attributes contain atomic values
-  Example: phone stored as single value, not array
+## Schema Normalization: 2NF and 3NF Compliance
 
-2NF: No partial dependencies
-  Example: In ClassRegistration (member_id, class_id),
-  registered_at depends on both keys together
+All tables in our schema satisfy **Third Normal Form (3NF)**, which includes compliance with both 1NF and 2NF.
 
-3NF: No transitive dependencies
-  Example: In Member table, email depends directly
-  on member_id, not through another attribute
+---
 
-Result: No redundant data, efficient updates, data integrity maintained
+## 1. First Normal Form (1NF)
+
+**Requirement:** All attributes contain atomic values, no repeating groups.
+
+**Proof:**
+- All attributes store single values (TEXT, INTEGER, NUMERIC, DATE, TIMESTAMP)
+- Example: `member.phone` stores one phone number, not an array
+- No repeating groups (e.g., phone1, phone2, phone3)
+- Multiple related values stored in separate tables (e.g., health metrics as separate rows)
+
+**Status:** All 10 tables are in 1NF.
+
+---
+
+## 2. Second Normal Form (2NF)
+
+**Requirement:** No partial dependencies (non-key attributes must depend on entire primary key).
+
+**Proof:**
+
+**Tables with single-column PKs (10 tables):**
+- Partial dependencies cannot exist with single-column PKs
+- All non-key attributes depend on the entire (single-column) PK
+
+- Example: `registered_at` depends on BOTH `member_id` AND `class_id` together
+- Does NOT depend on `member_id` alone (different registrations for same member)
+- Does NOT depend on `class_id` alone (different members register at different times)
+- **No partial dependencies exist**
+
+**Status:** All 10 tables are in 2NF.
+
+---
+
+## 3. Third Normal Form (3NF)
+
+**Requirement:** No transitive dependencies (non-key attributes cannot depend on other non-key attributes).
+
+**Proof:**
+
+We verified each table to ensure no non-key attribute determines another non-key attribute.
+
+**Key Example:**
+
+**Member Table:**
+- `email` does NOT determine `name` (email is unique but not used to derive other attributes)
+- `dob` does NOT determine `name` (many people share birth dates)
+- All attributes depend directly on `member_id`
+
+**Similar analysis applies to all 10 tables** 
+
+**Status:** All 10 tables are in 3NF.
+
+---
+
+## Summary
+
+**Result:** Schema is fully normalized to 3NF, eliminating redundancy.

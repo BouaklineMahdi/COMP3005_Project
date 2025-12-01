@@ -1,0 +1,13 @@
+ATTRIBUTE DESIGN DECISIONS:
+
+1. Names stored as single text field (not composite)
+   - Rationale: Simplicity; international names vary in structure
+
+2. Single phone number per user
+   - Rationale: Primary contact only; additional numbers not required
+
+3. No derived attributes shown
+   - Rationale: Calculations done in application layer, not database
+
+4. Email as unique identifier
+   - Rationale: Business rule requires unique email per user
