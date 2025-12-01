@@ -1,0 +1,16 @@
+NORMALIZATION NOTES:
+
+All tables are in Third Normal Form (3NF):
+
+1NF: All attributes contain atomic values
+  Example: phone stored as single value, not array
+
+2NF: No partial dependencies
+  Example: In ClassRegistration (member_id, class_id),
+  registered_at depends on both keys together
+
+3NF: No transitive dependencies
+  Example: In Member table, email depends directly
+  on member_id, not through another attribute
+
+Result: No redundant data, efficient updates, data integrity maintained

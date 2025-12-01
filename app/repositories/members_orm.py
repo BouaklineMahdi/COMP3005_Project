@@ -23,7 +23,7 @@ def register_for_class(member_id: int, class_id: int) -> None:
         reg = ClassRegistration(
             member_id=member_id,
             class_id=class_id,
-            registered_at=datetime.utcnow(),  # 👈 important
+            registered_at=datetime.utcnow(),  # important
         )
         session.add(reg)
         session.commit()
@@ -51,7 +51,7 @@ def add_health_metric(member_id: int, metric: HealthMetricCreate) -> int:
             member_id=member_id,
             metric_type=metric.metric_type,
             metric_value=metric.metric_value,
-            measured_at=datetime.utcnow(),  # 👈 force non-null timestamp
+            measured_at=datetime.utcnow(),  # force non-null timestamp
         )
         session.add(hm)
         session.commit()
